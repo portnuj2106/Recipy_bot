@@ -1,10 +1,12 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import CallbackContext, ConversationHandler
-from ..constants import CLICK, PREF_GREET
+from ..constants import CLICK
 from bot.global_vars import GlobalVars
 from bot.global_vars import global_vars, preferences
-from ..keyboards.inline import create_recipy_buttons, enter_new_ingredients_buttons
+from ..keyboards.inline import create_recipy_buttons, enter_new_ingredients_buttons, auth_create_recipy_buttons
 from bot.API.api_preferences import api_preferences
+from bot.bd.bd import users_db
+
 
 class ShowRecipeAPI(GlobalVars):
     async def show_recipe(self, update: Update, context: CallbackContext):
@@ -18,11 +20,19 @@ class ShowRecipeAPI(GlobalVars):
         else:
             if not preferences.isVegetarian and not preferences.cookingTime:
                 await context.bot.send_message(update.effective_chat.id, f"{global_vars.data[global_vars.call_index]['title']}")
-                await context.bot.send_photo(update.effective_chat.id, f"{global_vars.data[global_vars.call_index]['image']}",
-                                             reply_markup=create_recipy_buttons())
+                if users_db.is_authorized(update.effective_user.id):
+                    await context.bot.send_photo(update.effective_chat.id, f"{global_vars.data[global_vars.call_index]['image']}",
+                                                 reply_markup=auth_create_recipy_buttons())
+                else:
+                    await context.bot.send_photo(update.effective_chat.id,
+                                                 f"{global_vars.data[global_vars.call_index]['image']}",
+                                                 reply_markup=create_recipy_buttons())
                 global_vars.call_index += 1
             else:
-                await api_preferences.get_recipes_info(update, context)
+                recipe_ids = []
+                for recipe in global_vars.data:
+                    recipe_ids.append(recipe["id"])
+                await api_preferences.check_preferences(update, context, recipe_ids)
             return CLICK
 
     async def show_missed_ingredients(self, update: Update, context: CallbackContext, call_ind) -> None:

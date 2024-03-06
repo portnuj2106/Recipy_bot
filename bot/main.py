@@ -17,8 +17,7 @@ import env
 from .handlers.main import register_handlers
 
 
-URL = "https://d920-46-63-28-245.ngrok-free.app"
-ADMIN_CHAT_ID = 123456
+URL = "https://c760-46-63-28-245.ngrok-free.app"
 PORT = 8000
 
 

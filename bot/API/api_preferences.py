@@ -6,19 +6,26 @@ import env
 from ..constants import CLICK, SEARCH
 from bot.global_vars import GlobalVars
 from bot.global_vars import global_vars, preferences
-from bot.keyboards.inline import create_recipy_buttons, enter_new_ingredients_buttons
-
+from bot.keyboards.inline import create_recipy_buttons, enter_new_ingredients_buttons, auth_create_recipy_buttons
+from bot.bd.bd import users_db
 
 class APIPreferences(GlobalVars):
-    async def get_recipes_info(self, update: Update, context: CallbackContext):
-        recipe_infos = []
-        for recipe in global_vars.data:
-            res = requests.get(f'https://api.spoonacular.com/recipes/{recipe['id']}/information?apiKey={env.Keys.API_KEY}&includeNutrition=false')
-            if res.status_code == 200:
-                recipe_data = json.loads(res.text)
-                recipe_infos.append(recipe_data)
-            else:
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error: {res.status_code}")
+    async def get_recipes_info(self, update: Update, context: CallbackContext, recipe_ids):
+        if isinstance(recipe_ids, list):
+            recipe_ids_str = ','.join(str(id) for id in recipe_ids)
+            url = f'https://api.spoonacular.com/recipes/informationBulk?ids={recipe_ids_str}&apiKey={env.Keys.API_KEY}&includeNutrition=false'
+        else:
+            url = f'https://api.spoonacular.com/recipes/informationBulk?ids={recipe_ids}&apiKey={env.Keys.API_KEY}&includeNutrition=false'
+        res = requests.get(url)
+        if res.status_code == 200:
+            recipe_infos = []
+            recipe_infos = res.json()
+        else:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error: {res.status_code}")
+        return recipe_infos
+
+    async def check_preferences(self, update: Update, context: CallbackContext, recipe_ids):
+        recipe_infos = await api_preferences.get_recipes_info(update, context, recipe_ids)
         if preferences.isVegetarian and not preferences.cookingTime:
             await api_preferences.filter_vegetarian_recipes(update, context, recipe_infos)
         elif preferences.cookingTime and not preferences.isVegetarian:
@@ -66,9 +73,14 @@ class APIPreferences(GlobalVars):
             if item["id"] in seen_ids:
                 await context.bot.send_message(update.effective_chat.id,
                                                f"{global_vars.data[global_vars.call_index]['title']}")
-                await context.bot.send_photo(update.effective_chat.id,
-                                             f"{global_vars.data[global_vars.call_index]['image']}",
-                                             reply_markup=create_recipy_buttons())
+                if users_db.is_authorized(update.effective_user.id):
+                    await context.bot.send_photo(update.effective_chat.id,
+                                                 f"{global_vars.data[global_vars.call_index]['image']}",
+                                                 reply_markup=auth_create_recipy_buttons())
+                else:
+                    await context.bot.send_photo(update.effective_chat.id,
+                                                 f"{global_vars.data[global_vars.call_index]['image']}",
+                                                 reply_markup=create_recipy_buttons())
                 global_vars.call_index += 1
         return CLICK
 
@@ -91,7 +103,11 @@ class APIPreferences(GlobalVars):
             data = data_dict.get(recipe_id)
             await context.bot.send_message(update.effective_chat.id, f"Cooking time: {sorted_recipe_infos[global_vars.call_index]["readyInMinutes"]} minutes")
             await context.bot.send_message(update.effective_chat.id, f"{data['title']}")
-            await context.bot.send_photo(update.effective_chat.id, f"{data['image']}",
+            if users_db.is_authorized(update.effective_user.id):
+                await context.bot.send_photo(update.effective_chat.id, f"{data['image']}",
+                                                 reply_markup=auth_create_recipy_buttons())
+            else:
+                await context.bot.send_photo(update.effective_chat.id, f"{data['image']}",
                                              reply_markup=create_recipy_buttons())
             global_vars.call_index += 1
             return CLICK
@@ -113,9 +129,14 @@ class APIPreferences(GlobalVars):
                                                f"Cooking time: {sorted_vegetarian_infos[global_vars.call_index]['readyInMinutes']} minutes")
                 await context.bot.send_message(update.effective_chat.id,
                                                f"{global_vars.data[global_vars.call_index]['title']}")
-                await context.bot.send_photo(update.effective_chat.id,
-                                             f"{global_vars.data[global_vars.call_index]['image']}",
-                                             reply_markup=create_recipy_buttons())
+                if users_db.is_authorized(update.effective_user.id):
+                    await context.bot.send_photo(update.effective_chat.id,
+                                                 f"{global_vars.data[global_vars.call_index]['image']}",
+                                                 reply_markup=auth_create_recipy_buttons())
+                else:
+                    await context.bot.send_photo(update.effective_chat.id,
+                                                 f"{global_vars.data[global_vars.call_index]['image']}",
+                                                 reply_markup=create_recipy_buttons())
                 global_vars.call_index += 1
         return CLICK
 

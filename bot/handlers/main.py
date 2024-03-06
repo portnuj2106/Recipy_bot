@@ -4,17 +4,23 @@ from telegram.ext import (ConversationHandler, MessageHandler,
 from bot.handlers.user_handlers.recipy_handlers import start, on_recipy_click, start_search
 from bot.handlers.user_handlers.prefs_handlers import set_prefs, set_prefs_start, is_vegetarian, cooking_time, is_healthier
 from bot.handlers.admin_handlers.admin_handlers import admin_panel_handler
+from bot.handlers.user_handlers.registration_handlers import start_registration, save_nickname, save_email
+from bot.handlers.user_handlers.favorite_handlers import get_favorite_recipes
+from bot.handlers.admin_handlers.admin_handlers import view_users, delete_user
 from bot.API.api_get import recipy_api
 from bot.constants import *
 
-PREF_GREET = 0
-PREF_START = 1
-VEGETARIAN = 2
-COOKING = 3
-HEALTHY = 4
-
 
 async def register_handlers(application):
+    registration_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.TEXT & (filters.Regex(r'^Register me$')), start_registration)],
+        states={
+            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_nickname)],
+            EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_email)],
+        },
+        fallbacks=[],
+    )
+
     recipy_handler = ConversationHandler(
         entry_points=[MessageHandler(filters.TEXT & (filters.Regex(r'^Enter ingredients$')), start_search)],
         states={
@@ -35,8 +41,12 @@ async def register_handlers(application):
         fallbacks=[],
     )
 
+    application.add_handler(registration_handler)
     application.add_handler(recipy_handler)
     application.add_handler(prefs_handler)
+    application.add_handler(CallbackQueryHandler(delete_user))
+    application.add_handler(MessageHandler(filters.TEXT & (filters.Regex(r'^Favorite recipes$')), get_favorite_recipes))
     application.add_handler(MessageHandler(filters.TEXT & (filters.Regex(r'^Admin panel$')), admin_panel_handler))
+    application.add_handler(MessageHandler(filters.TEXT & (filters.Regex(r'^View registered users$')), view_users))
     application.add_handler(CommandHandler(["start"], start))
 

@@ -7,7 +7,7 @@ from ..constants import CLICK, SEARCH, PREF_START
 from bot.global_vars import GlobalVars
 from bot.global_vars import global_vars
 from .api_show import api_show
-
+from bot.bd.bd import users_db
 
 class GetRecipeAPI(GlobalVars):
     async def search_for_recipes(self, update: Update, context: CallbackContext) -> int:
@@ -28,7 +28,7 @@ class GetRecipeAPI(GlobalVars):
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error: {res.status_code}")
         return SEARCH
 
-    async def search_for_description(self, update: Update, context: CallbackContext) -> int:
+    async def search_for_description(self, update: Update, context: CallbackContext, call_index=global_vars.call_index) -> int:
         if global_vars.call_index < 0 or global_vars.call_index >= len(global_vars.data):
             recipe_id = global_vars.data[global_vars.call_index - 1]["id"]
         else:
