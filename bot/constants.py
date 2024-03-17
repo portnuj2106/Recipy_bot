@@ -7,3 +7,6 @@ PREF_GREET, PREF_START, VEGETARIAN, COOKING, HEALTHY = range(5)
 
 # registration
 NAME, EMAIL = range(2)
+
+# favorite recipes
+NEXT_RECIPE = range(1)

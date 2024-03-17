@@ -20,6 +20,6 @@ def create_admin_buttons() -> ReplyKeyboardMarkup:
 
 
 def create_admin_panel_buttons() -> ReplyKeyboardMarkup:
-    reply_markup = ReplyKeyboardMarkup([['View registered users', 'Favorite recipes'], ['Faggs']],
+    reply_markup = ReplyKeyboardMarkup([['View registered users']],
                                        resize_keyboard=True, one_time_keyboard=False)
     return reply_markup

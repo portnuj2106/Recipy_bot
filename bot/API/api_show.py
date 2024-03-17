@@ -10,8 +10,6 @@ from bot.bd.bd import users_db
 
 class ShowRecipeAPI(GlobalVars):
     async def show_recipe(self, update: Update, context: CallbackContext):
-        if update.message and update.message.text == "Set preferences":
-            return ConversationHandler.END
         if global_vars.call_index >= len(global_vars.data):
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                                text="That's all new recipes available\n============================",
@@ -35,14 +33,14 @@ class ShowRecipeAPI(GlobalVars):
                 await api_preferences.check_preferences(update, context, recipe_ids)
             return CLICK
 
-    async def show_missed_ingredients(self, update: Update, context: CallbackContext, call_ind) -> None:
+    async def show_missed_ingredients(self, update: Update, context: CallbackContext, call_ind, recipe_info) -> None:
         ingredients = ""
-        for index, missedIngredient in enumerate(global_vars.data[call_ind]["missedIngredients"]):
+        for index, missedIngredient in enumerate(recipe_info[call_ind]["missedIngredients"]):
             ingredients += missedIngredient["name"].title()
-            if index < len(global_vars.data[call_ind]["missedIngredients"]) - 1:
+            if index < len(recipe_info[call_ind]["missedIngredients"]) - 1:
                 ingredients += ",  "
         await context.bot.send_message(update.effective_chat.id,
-                                       f"You miss {global_vars.data[call_ind]["missedIngredientCount"]} ingredients:  {ingredients}")
+                                       f"You miss {recipe_info[call_ind]["missedIngredientCount"]} ingredients:  {ingredients}")
 
 
 api_show = ShowRecipeAPI()

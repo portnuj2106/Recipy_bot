@@ -50,7 +50,6 @@ class UserDatabase:
         self.connection.commit()
 
     def add_user_recipe(self, user_id, recipe_id):
-        # Retrieve existing recipes for the user
         user = self.get_user_by_id(user_id)
         existing_recipes = user.get('users_recipes')
 
@@ -78,5 +77,27 @@ class UserDatabase:
             return user[3]
         else:
             return None
+
+    def delete_user_recipe(self, user_id, recipe_id):
+        # Retrieve the concatenated string of recipe IDs for the user
+        user_recipes_string = self.get_user_recipes_string(user_id)
+        if user_recipes_string:
+            # Convert the concatenated string to a list of recipe IDs
+            user_recipes_list = user_recipes_string.split(',')
+            # Remove the specified recipe ID from the list
+            if str(recipe_id) in user_recipes_list:
+                user_recipes_list.remove(str(recipe_id))
+                # Convert the updated list back into a concatenated string
+                updated_recipes_string = ','.join(user_recipes_list)
+                # Update the database with the modified concatenated string
+                update_statement = self.users.update(). \
+                    where(self.users.columns.user_id == user_id). \
+                    values(users_recipes=updated_recipes_string)
+                self.connection.execute(update_statement)
+                self.connection.commit()
+            else:
+                print("Recipe ID not found in user's recipes")
+        else:
+            print("User not found or user has no recipes")
 
 users_db = UserDatabase('sqlite:///users-sqlalchemy.db')

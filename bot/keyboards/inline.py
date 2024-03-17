@@ -45,10 +45,21 @@ def yes_or_no_buttons() -> InlineKeyboardMarkup:
     reply_markup = InlineKeyboardMarkup(keyboard)
     return reply_markup
 
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-# def edit_user_buttons() -> InlineKeyboardMarkup:
-#     for user in users_db.get_all_users():
-#         keyboard = [[InlineKeyboardButton("Delete", callback_data=f"delete_{user['user_id']}")]]
-#         reply_markup = InlineKeyboardMarkup(keyboard)
-#     reply_markup = InlineKeyboardMarkup(keyboard)
-#     return reply_markup
+
+def favorite_recipes_buttons(chat_id, page_number, total_pages):
+    pagination = []
+    if page_number > 1:
+        pagination.append(InlineKeyboardButton("⬅️ Previous", callback_data=f"previous_{page_number - 1}"))
+    if page_number < total_pages:
+        pagination.append(InlineKeyboardButton("Next ➡️", callback_data=f"next_{page_number + 1}"))
+    keyboard = [
+        [InlineKeyboardButton(text="More about this one", callback_data="description")],
+        [InlineKeyboardButton(text="Remove from favorites", callback_data="deleteFav")]
+    ]
+    if pagination:
+        keyboard.insert(0, pagination)  # Insert pagination buttons at the beginning
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    return reply_markup
+

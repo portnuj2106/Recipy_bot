@@ -1,12 +1,11 @@
+import re
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
     CallbackContext,
     ConversationHandler,
 )
-import re
-from bot.keyboards.inline import create_prefs_buttons, yes_or_no_buttons
+
 from bot.constants import *
-from bot.global_vars import preferences
 from bot.bd.bd import users_db
 
 user_name = ''
@@ -20,7 +19,6 @@ async def start_registration(update: Update, context: CallbackContext) -> int:
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Your name:")
         return NAME
-
 
 
 async def save_nickname(update: Update, context: CallbackContext) -> int:
@@ -55,13 +53,7 @@ async def save_email(update: Update, context: CallbackContext) -> int:
 
 
 
-# async def save_user_to_db(update: Update, context: CallbackContext) -> int:
-#     print("Entering the save func")
-#     global user_name, user_email
-#     user_id = update.message.from_user.id
-#     users_db.add_user(user_id, user_name, user_email)
-#     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"{users_db.get_all_users()}")
-#     return ConversationHandler.END
+
 
 
 

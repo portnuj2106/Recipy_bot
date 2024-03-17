@@ -17,8 +17,9 @@ import env
 from .handlers.main import register_handlers
 
 
-URL = "https://c760-46-63-28-245.ngrok-free.app"
+URL = "https://5cc3-46-63-28-245.ngrok-free.app"
 PORT = 8000
+
 
 
 @dataclass
